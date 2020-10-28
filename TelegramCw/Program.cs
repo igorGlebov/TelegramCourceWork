@@ -7,8 +7,14 @@ namespace TelegramCw
     {
         static async Task Main()
         {
+            
             var commandHandler = new CommandHandler();
-            var processListener = new ProcessListener();
+            var processListener = new ProcessListener(commandHandler.BlockedProcesses);
+
+            commandHandler.OnProcessAdded += (sender, name) =>
+            {
+                processListener.StopProcess(name);
+            };
             CamWorker.Init();
 
             Console.ReadLine();

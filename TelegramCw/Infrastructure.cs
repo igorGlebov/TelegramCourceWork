@@ -1,4 +1,7 @@
-﻿namespace TelegramCw
+﻿using System;
+using System.Collections.Generic;
+
+namespace TelegramCw
 {
     /// <summary>
     /// Класс, хранящий в себе постоянные данные, необходимые для работы системы.
@@ -6,19 +9,20 @@
     public static class Infrastructure
     {
         /// <summary>
-        /// Данные, необходимые для подключения
+        /// Конфигурационные данные.
         /// </summary>
-        public static class Connection
+        [Serializable]
+        public class Config
         {
             /// <summary>
             /// Токен, необходимый для идентификации бота.
             /// </summary>
-            public const string CONNECTION_TOKEN = "1245372046:AAEgj96s30uA4ufTgmIZ1cMf3g2OR4WYA7o";
+            public string Token { get; set; }
 
             /// <summary>
-            /// Идентификатор тестового чата для тестовых сообщений бота.
+            /// Список заблокированных процессов.
             /// </summary>
-            public const string TEST_CHAT_ID = "-1001266851208";
+            public List<string> BlockedProcesses { get; } = new List<string>();
         }
 
         /// <summary>
@@ -30,6 +34,11 @@
             /// Имя файла, хранящего в себе некоторую информацию, необходимую для процесса работы программы.
             /// </summary>
             public const string TMP_IMAGE_FILE_NAME = "image.png";
+
+            /// <summary>
+            /// Имя конфигурационного файла.
+            /// </summary>
+            public const string CONFIG_FILE_NAME = "config";
         }
 
         /// <summary>
@@ -51,12 +60,12 @@
             /// Команда получения скриншота.
             /// </summary>
             public const string GET_SCREEN = "/get_screen";
-            
+
             /// <summary>
             /// Команда получения снимка с камеры.
             /// </summary>
             public const string GET_CAM = "/get_cam";
-            
+
             /// <summary>
             /// Команда получения списка USB-устройств.
             /// </summary>
@@ -70,7 +79,7 @@
             /// <summary>
             /// Команда удаления процесса из списка заблокированных.
             /// </summary>
-            public const string REMOVE_CLOCK = "/remove_block";
+            public const string REMOVE_BLOCK = "/remove_block";
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types.Enums;
@@ -17,15 +18,42 @@ namespace TelegramCw
         /// </summary>
         private readonly TelegramBotClient _bot;
 
+        /// <summary>
+        /// Конфиг.
+        /// </summary>
+        private readonly Infrastructure.Config _config;
+
+        /// <summary>
+        /// Список заблокированных процессов.
+        /// </summary>
+        public List<string> BlockedProcesses => _config.BlockedProcesses;
+
+        /// <summary>
+        /// Вызывается при добавлении нового процесса в список.
+        /// </summary>
+        public EventHandler<string> OnProcessAdded;
+        
         public CommandHandler()
         {
-            _bot = new TelegramBotClient(Infrastructure.Connection.CONNECTION_TOKEN);
+            _config = DataSerializer.Deserialize<Infrastructure.Config>();
+
+            if (_config.Token == null)
+            {
+                Console.Write("Введите id бота: ");
+                _config.Token = Console.ReadLine();
+                DataSerializer.Serialize(_config);
+            }
+
+            _bot = new TelegramBotClient(_config.Token);
             _bot.OnUpdate += OnUpdate;
             _bot.StartReceiving();
 
             Console.WriteLine("Bot start listening...");
         }
 
+        /// <summary>
+        /// Останавливает прием сообщений ботом.
+        /// </summary>
         public void StopReceiving() => _bot.StopReceiving();
         
         /// <summary>
@@ -77,16 +105,29 @@ namespace TelegramCw
                             await _bot.SendTextMessageAsync(chatId, "Нет камеры.");
                         }
                         break;
-                    
-                    case Infrastructure.Commands.ADD_BLOCK:
-                        await _bot.SendTextMessageAsync(chatId, "Команда находится в разработке...");
-                        break;
-                    case Infrastructure.Commands.REMOVE_CLOCK:
-                        await _bot.SendTextMessageAsync(chatId, "Команда находится в разработке...");
-                        break;
 
                     default:
-                        await _bot.SendTextMessageAsync(chatId, "Неизвестная команда. Попробуйте еще раз.");
+                        if (text.Contains(Infrastructure.Commands.ADD_BLOCK))
+                        {
+                            var name = text.Replace($"{Infrastructure.Commands.ADD_BLOCK} ", string.Empty);
+                            BlockedProcesses.Add(name);
+                            DataSerializer.Serialize(_config);
+                            OnProcessAdded?.Invoke(this, name);
+                            await _bot.SendTextMessageAsync(chatId, "Процесс успешно заблокирован.");
+                        }
+                        
+                        else if (text.Contains(Infrastructure.Commands.REMOVE_BLOCK))
+                        {
+                            var name = text.Replace($"{Infrastructure.Commands.REMOVE_BLOCK} ", string.Empty);
+                            BlockedProcesses.Remove(name);
+                            DataSerializer.Serialize(_config);
+                            await _bot.SendTextMessageAsync(chatId, "Процесс успешно разблокирован.");
+                        }
+
+                        else
+                        {
+                            await _bot.SendTextMessageAsync(chatId, "Неизвестная команда. Попробуйте еще раз.");
+                        }
                         break;
                 }
             }
